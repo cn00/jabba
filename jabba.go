@@ -15,7 +15,7 @@ import (
 
 	"github.com/Jabba-Team/jabba/command"
 	"github.com/Jabba-Team/jabba/semver"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	rootcerts "github.com/hashicorp/go-rootcerts"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

@@ -21,7 +21,7 @@ import (
 	"github.com/Jabba-Team/jabba/command/fileiter"
 	"github.com/Jabba-Team/jabba/semver"
 	"github.com/Jabba-Team/jabba/w32"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/mitchellh/ioprogress"
 	"github.com/xi2/xz"
 )

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Jabba-Team/jabba/cfg"
 	"github.com/Jabba-Team/jabba/semver"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func Link(selector string, dir string) error {
