@@ -2,10 +2,8 @@ SHELL := /bin/bash -o pipefail
 VERSION := $(shell git describe --tags --abbrev=0)
 
 fetch:
-	go get \
-	github.com/mitchellh/gox \
-	github.com/modocache/gover \
-	github.com/aktau/github-release
+	go install github.com/modocache/gover@latest
+	go install github.com/github-release/github-release@latest
 
 clean:
 	rm -f ./jabba
@@ -29,21 +27,28 @@ build:
 	CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}"
 
 build-release:
-	CGO_ENABLED=0 gox -verbose \
-	-ldflags "-X main.version=${VERSION}" \
-	-osarch="windows/386 windows/amd64 linux/386 linux/amd64 darwin/amd64 darwin/arm64 linux/arm linux/arm64" \
-	-output="release/{{.Dir}}-${VERSION}-{{.OS}}-{{.Arch}}" .
+	mkdir -p release
+	@echo "Building for multiple platforms..."
+	GOOS=windows GOARCH=386 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-windows-386.exe
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-windows-amd64.exe
+	GOOS=linux GOARCH=386 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-linux-386
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-linux-amd64
+	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-darwin-amd64
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-darwin-arm64
+	GOOS=linux GOARCH=arm CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-linux-arm
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${VERSION}" -o release/jabba-${VERSION}-linux-arm64
+	@echo "Build complete!"
+	@ls -lh release/
 
 install: build
 	JABBA_MAKE_INSTALL=true JABBA_VERSION=${VERSION} bash install.sh
 
 publish: clean build-release
 	test -n "$(GITHUB_TOKEN)" # $$GITHUB_TOKEN must be set
-	github-release release --user patrick-mccourt --repo Jabba-Team/jabba --tag ${VERSION} \
+	github-release release --user Jabba-Team --repo jabba --tag ${VERSION} \
 	--name "${VERSION}" --description "${VERSION}" && \
-	github-release upload --user patrick-mccourt --repo Jabba-Team/jabba --tag ${VERSION} \
-	--name "jabba-${VERSION}-windows-amd64.exe" --file release/jabba-${VERSION}-windows-amd64.exe; \
-	for qualifier in darwin-amd64 linux-386 linux-amd64 linux-arm linux-arm64; do \
-		github-release upload --user patrick-mccourt --repo Jabba-Team/jabba --tag ${VERSION} \
-		--name "jabba-${VERSION}-$$qualifier" --file release/jabba-${VERSION}-$$qualifier; \
+	for file in release/*; do \
+		filename=$$(basename $$file); \
+		github-release upload --user Jabba-Team --repo jabba --tag ${VERSION} \
+		--name "$$filename" --file "$$file"; \
 	done

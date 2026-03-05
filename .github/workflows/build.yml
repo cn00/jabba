@@ -1,4 +1,4 @@
-name: make Jabba
+name: Build and Test
 
 on:
   push:
@@ -7,16 +7,56 @@ on:
     branches: [ "main" ]
 
 jobs:
-  make:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        
+    runs-on: ${{ matrix.os }}
+    
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          stable: 'false'
-          go-version: '1.19.4'
-      - name: fetch
-        run: make fetch
-      - name: test
+          go-version: '1.26'
+          
+      - name: Run tests
         run: make test
+        
+      - name: Build
+        run: make build
+        
+      - name: Verify binary
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            ./jabba.exe --version
+          else
+            ./jabba --version
+          fi
+
+  build-release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          
+      - name: Build release binaries
+        run: make build-release
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries
+          path: release/*
 
