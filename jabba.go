@@ -221,6 +221,28 @@ func main() {
 	rootCmd.AddCommand(
 		installCmd,
 		&cobra.Command{
+			Use:   "check",
+			Short: "Check jabba installation and shell integration",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				result, err := command.Check()
+				if err != nil {
+					log.Fatal(err)
+				}
+				command.PrintCheckResult(result)
+				return nil
+			},
+		},
+		&cobra.Command{
+			Use:   "init",
+			Short: "Initialize shell integration for current shell",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				if err := command.Init(); err != nil {
+					log.Fatal(err)
+				}
+				return nil
+			},
+		},
+		&cobra.Command{
 			Use:   "uninstall [version to uninstall]",
 			Short: "Uninstall JDK",
 			RunE: func(cmd *cobra.Command, args []string) error {
