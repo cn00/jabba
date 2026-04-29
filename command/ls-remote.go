@@ -19,10 +19,10 @@ type byOS map[string]byArch
 type byArch map[string]byDistribution
 type byDistribution map[string]map[string]string
 
-var localCachePath = _os.Getenv("HOME") + "/.jabba/index.json"
+var localCachePath = cfg.Dir() + "/index.json"
 
 func LsRemote(os, arch string) (map[*semver.Version]string, error) {
-	// try read ~/.jabba/index.json first
+	// try read $JABBA_HOME/index.json first
 	var cnt, err = _os.ReadFile(localCachePath);
 	if err != nil{
 		cnt, err = fetch(cfg.Index())
